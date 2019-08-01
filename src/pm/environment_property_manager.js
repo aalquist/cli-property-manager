@@ -83,7 +83,7 @@ class EnvironmentPropertyManager extends Environment {
         this.createHostnamesFile();
     }
 
-    async importProperty(createPipelineInfo) {
+    async importProperty(createPipelineInfo, key) {
         let envInfo = {
             name: this.name,
             propertyId: createPipelineInfo.propertyId,
@@ -92,13 +92,13 @@ class EnvironmentPropertyManager extends Environment {
             isSecure: createPipelineInfo.secureOption || false
         };
         logger.info(`Checking latest version of '${this.propertyName}'`);
-        let versionInfo = await this.getPAPI().latestPropertyVersion(envInfo.propertyId);
+        let versionInfo = await this.getPAPI().latestPropertyVersion(envInfo.propertyId, key);
         envInfo.latestVersionInfo = helpers.clone(versionInfo.versions.items[0]);
         logger.info("envInfo: ", envInfo);
         //
         this.storeEnvironmentInfo(envInfo);
         this.createHostnamesFile();
-        this.update(envInfo.isSecure);
+        this.update(envInfo.isSecure, key);
 
     }
     /**
@@ -106,13 +106,13 @@ class EnvironmentPropertyManager extends Environment {
      * @param {boolean} isSecure - The secure field is from ruletree, which is retrieved from elsewhere
      * @returns {Promise.<void>}
      */
-    async update(isSecure) {
+    async update(isSecure,key) {
         await this.checkPromotions();
-        await this.updateEnvInfo(isSecure);
+        await this.updateEnvInfo(isSecure, key);
 
         let envInfo = this.getEnvironmentInfo();
 
-        let hostnameResponse = await this.getPAPI().getPropertyVersionHostnames(envInfo.propertyId, envInfo.latestVersionInfo.propertyVersion);
+        let hostnameResponse = await this.getPAPI().getPropertyVersionHostnames(envInfo.propertyId, envInfo.latestVersionInfo.propertyVersion,key);
         let hostnames = hostnameResponse.hostnames.items;
 
         let mgr = new EdgeHostnameManager(this);

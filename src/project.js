@@ -284,14 +284,14 @@ class Project {
      * Each product needs its own set of rules.
      * @returns {Promise.<void>}
      */
-    async setupPropertyTemplate(ruleTree, variableMode) {
+    async setupPropertyTemplate(ruleTree, variableMode, key) {
         let suggestedRuleFormat;
         let projectInfo = this.getProjectInfo();
         let createTemplates = true;
         for (let envName of this.getProjectInfo().environments) {
             let env = this.getEnvironment(envName);
             if (!_.isObject(ruleTree)) {
-                let clientSettings = await this.dependencies.getPAPI().getClientSettings();
+                let clientSettings = await this.dependencies.getPAPI().getClientSettings(key);
                 ruleTree = await env.getRuleTree(clientSettings.ruleFormat);
                 if (_.isArray(ruleTree.warnings)) {
                     for (let warning of ruleTree.warnings) {
@@ -338,13 +338,13 @@ class Project {
      * @return {Promise.<*>}
      */
 
-    async getPropertyInfo(propertyId, version) {
+    async getPropertyInfo(propertyId, version, accountKey) {
         let papi = this.dependencies.getPAPI();
         let versionInfo;
         if (!_.isNumber(version)) {
-            versionInfo = await papi.latestPropertyVersion(propertyId);
+            versionInfo = await papi.latestPropertyVersion(propertyId, accountKey);
         } else {
-            versionInfo = await papi.getPropertyVersion(propertyId, version);
+            versionInfo = await papi.getPropertyVersion(propertyId, version, accountKey);
         }
         return {
             propertyId: versionInfo.propertyId,
@@ -356,22 +356,22 @@ class Project {
         }
     }
 
-    async getPropertyRuleTree(propertyId, version) {
+    async getPropertyRuleTree(propertyId, version, key) {
         let papi = this.dependencies.getPAPI();
         let suggestedRuleFormat;
-        let clientSettings = await papi.getClientSettings();
+        let clientSettings = await papi.getClientSettings(key);
         if (!_.isNumber(version)) {
             let versionInfo = await papi.latestPropertyVersion(propertyId);
             version = versionInfo.versions.items[0].propertyVersion;
         }
-        let ruleTree = await papi.getPropertyVersionRules(propertyId, version, clientSettings.ruleFormat);
+        let ruleTree = await papi.getPropertyVersionRules(propertyId, version, clientSettings.ruleFormat, key);
         if (_.isArray(ruleTree.warnings)) {
             for (let warning of ruleTree.warnings) {
                 if (warning.type === "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format") {
                     suggestedRuleFormat = warning.suggestedRuleFormat;
                     //we want to get the rule tree converted to the suggested rule format.
                     //so that we don't build the template with an unstable rule format.
-                    ruleTree = await papi.getPropertyVersionRules(propertyId, version, warning.suggestedRuleFormat);
+                    ruleTree = await papi.getPropertyVersionRules(propertyId, version, warning.suggestedRuleFormat, key);
                     break;
                 }
             }

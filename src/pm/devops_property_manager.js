@@ -102,7 +102,7 @@ class DevopsPropertyManager extends Devops {
      * @param createPropertyInfo
      * @returns {Promise.<*>}
      */
-    async importProperty(createPropertyInfo) {
+    async importProperty(createPropertyInfo, accountKey) {
         //validate property name
         if (!_.isString(createPropertyInfo.propertyName)) {
             throw new errors.ArgumentError(`Property name '${createPropertyInfo.propertyName}' is not a string`,
@@ -115,17 +115,17 @@ class DevopsPropertyManager extends Devops {
                 "property_folder_already_exists", createPropertyInfo.propertyName);
         }
         //check if property exists on server
-        let results = await this.getPAPI().findProperty(createPropertyInfo.propertyName);
+        let results = await this.getPAPI().findProperty(createPropertyInfo.propertyName, accountKey);
         if (results.versions.items.length === 0) {
             throw new errors.ArgumentError(`Can't find any version of property '${createPropertyInfo.propertyName}'`,
                 "property_does_not_exist_on_server", createPropertyInfo.propertyName);
         }
         createPropertyInfo.propertyId = helpers.parsePropertyId(results.versions.items[0].propertyId);
-        let propertyInfo = await project.getPropertyInfo(createPropertyInfo.propertyId);
+        let propertyInfo = await project.getPropertyInfo(createPropertyInfo.propertyId, null, accountKey);
 
         createPropertyInfo.propertyVersion = propertyInfo.propertyVersion;
         logger.info(`Attempting to load rule tree for property id: ${createPropertyInfo.propertyId} and version: ${createPropertyInfo.propertyVersion}`);
-        let ruleTree = await project.getPropertyRuleTree(createPropertyInfo.propertyId, createPropertyInfo.propertyVersion);
+        let ruleTree = await project.getPropertyRuleTree(createPropertyInfo.propertyId, createPropertyInfo.propertyVersion, accountKey);
         createPropertyInfo.groupId = helpers.parseGroupId(propertyInfo.groupId);
         createPropertyInfo.contractId = helpers.prefixeableString('ctr_')(propertyInfo.contractId);
         createPropertyInfo.productId = helpers.prefixeableString('prd_')(propertyInfo.productId);
@@ -141,7 +141,7 @@ class DevopsPropertyManager extends Devops {
 
         //Creating "environment"
         let env = project.getEnvironment(project.getName());
-        await env.importProperty(createPropertyInfo);
+        await env.importProperty(createPropertyInfo,accountKey);
         await project.setupPropertyTemplate(ruleTree, createPropertyInfo.variableMode, true);
         return project;
 

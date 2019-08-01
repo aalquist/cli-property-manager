@@ -28,12 +28,30 @@ class PAPI {
         this.openClient = openClient;
     }
 
-    findProperty(name) {
+    _buildAccountSwitchKeyQuery(key, firstQueryParam = false) {
+        
+
+        if( key) {
+            
+            if( firstQueryParam) {
+                return `?accountSwitchKey=${key}`;
+            } else {
+                return `&accountSwitchKey=${key}`;
+            }
+
+        } else {
+            return "";
+        }
+
+        return value
+    }
+
+    findProperty(name, key) {
         let searchBody = {
             "propertyName": name
         };
-
-        return this.openClient.post('/papi/v1/search/find-by-value', searchBody);
+        
+        return this.openClient.post(`/papi/v1/search/find-by-value${this._buildAccountSwitchKeyQuery(key,true)}`, searchBody);
     }
 
     createProperty(name, productId, contractId, groupId, ruleFormat, propertyId, propertyVersion, copyHostnames = false) {
@@ -64,13 +82,13 @@ class PAPI {
         return this.openClient.post(url, postBody);
     }
 
-    latestPropertyVersion(propertyId) {
-        let url = `/papi/v0/properties/${propertyId}/versions/latest`;
+    latestPropertyVersion(propertyId, key) {
+        let url = `/papi/v0/properties/${propertyId}/versions/latest${this._buildAccountSwitchKeyQuery(key,true)}`;
         return this.openClient.get(url);
     }
 
-    getPropertyVersion(propertyId, versionId) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${versionId}`;
+    getPropertyVersion(propertyId, versionId, key) {
+        let url = `/papi/v0/properties/${propertyId}/versions/${versionId}${this._buildAccountSwitchKeyQuery(key,true)}`;
         return this.openClient.get(url);
     }
 
@@ -90,8 +108,8 @@ class PAPI {
         return this.openClient.put(url, clientSettings);
     }
 
-    getClientSettings() {
-        let url = '/papi/v0/client-settings';
+    getClientSettings(key) {
+        let url = `/papi/v0/client-settings${this._buildAccountSwitchKeyQuery(key,true)}`;
         return this.openClient.get(url);
     }
 
@@ -107,8 +125,8 @@ class PAPI {
         return this.openClient.get('/papi/v0/groups');
     }
 
-    getPropertyVersionRules(propertyId, propertyVersion, ruleFormat) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/rules`;
+    getPropertyVersionRules(propertyId, propertyVersion, ruleFormat, key) {
+        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/rules${this._buildAccountSwitchKeyQuery(key,true)}`;
         let headers = {};
         if (_.isString(ruleFormat)) {
             headers.Accept = `application/vnd.akamai.papirules.${ruleFormat}+json`;
@@ -141,8 +159,8 @@ class PAPI {
         return this.openClient.put(url, rules, headers);
     }
 
-    getPropertyVersionHostnames(propertyId, propertyVersion) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames`;
+    getPropertyVersionHostnames(propertyId, propertyVersion, key) {
+        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames${this._buildAccountSwitchKeyQuery(key,true)}`;
         return this.openClient.get(url);
     }
 
@@ -184,8 +202,8 @@ class PAPI {
         });
     }
 
-    propertyActivateStatus(propertyId) {
-        const url = `/papi/v0/properties/${propertyId}/activations`;
+    propertyActivateStatus(propertyId, key) {
+        const url = `/papi/v0/properties/${propertyId}/activations${this._buildAccountSwitchKeyQuery(key,true)}`;
         return this.openClient.get(url);
     }
 
@@ -199,8 +217,8 @@ class PAPI {
         return this.openClient.get(url);
     }
 
-    getPropertyInfo(propertyId) {
-        let url = `/papi/v0/properties/${propertyId}`;
+    getPropertyInfo(propertyId,key) {
+        let url = `/papi/v0/properties/${propertyId}${this._buildAccountSwitchKeyQuery(key,true)}`;
         return this.openClient.get(url);
     }
 

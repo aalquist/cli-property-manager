@@ -5,3 +5,4 @@ node_modules
 stuff/
 .nyc_output/
 *.log
+.vscode/*

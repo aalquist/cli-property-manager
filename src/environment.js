@@ -752,7 +752,7 @@ class Environment {
         };
     }
 
-    async updateEnvInfoVersions(envInfo, versionNum, versionType) {
+    async updateEnvInfoVersions(envInfo, versionNum, versionType, key) {
         let versionMap = {
             staging: {
                 replaceVersionInfo: "activeIn_STAGING_Info",
@@ -776,7 +776,7 @@ class Environment {
         }
 
         if (_.isNumber(versionNum)) {
-            let info = await this.getPAPI().getPropertyVersion(envInfo.propertyId, versionNum);
+            let info = await this.getPAPI().getPropertyVersion(envInfo.propertyId, versionNum, key);
             info = helpers.clone(info.versions.items[0]);
             let statusField = versionMap[versionType].statusField;
 
@@ -790,14 +790,14 @@ class Environment {
 
     }
 
-    async updateEnvInfo(isSecure) {
+    async updateEnvInfo(isSecure, key) {
         let envInfo = this.getEnvironmentInfo();
         if (isSecure !== undefined && _.isBoolean(isSecure)) {
             envInfo.isSecure = isSecure;
         }
         logger.info("Getting property info");
-        let actualPropertyInfo = await this.getPAPI().getPropertyInfo(envInfo.propertyId);
-        let activations = await this.getPAPI().propertyActivateStatus(envInfo.propertyId);
+        let actualPropertyInfo = await this.getPAPI().getPropertyInfo(envInfo.propertyId, key);
+        let activations = await this.getPAPI().propertyActivateStatus(envInfo.propertyId, key);
 
         let stagingVersion, productionVersion, latestVersion;
         stagingVersion = actualPropertyInfo.properties.items[0].stagingVersion;
@@ -811,7 +811,7 @@ class Environment {
         await this.updateEnvInfoVersions(envInfo, productionVersion, "production");
 
         logger.info("getting latest version info");
-        await this.updateEnvInfoVersions(envInfo, latestVersion, "latest");
+        await this.updateEnvInfoVersions(envInfo, latestVersion, "latest", key);
 
         envInfo.pendingActivations = {};
         for (let activation of activations.activations.items) {

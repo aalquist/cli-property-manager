@@ -438,6 +438,12 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
 
     const importProperty = async function(devops, options) {
         let propertyName = options.property;
+        let accountKey = options.accountkey;
+
+        if (accountKey && !_.isBoolean(accountKey)) {
+            consoleLogger.info(`Using Account Key: ${accountKey}.`);
+        }
+
         if (!propertyName || _.isBoolean(propertyName)) {
             throw new errors.DependencyError("Missing property option! Use akamai pm import -p <property name> ...",
                 "missing_property_name");
@@ -459,7 +465,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         if (dryRun) {
             consoleLogger.info("update property info: ", helpers.jsonStringify(createPropertyInfo));
         } else {
-            let project = await devops.importProperty(createPropertyInfo);
+            let project = await devops.importProperty(createPropertyInfo, accountKey);
             consoleLogger.info(`Imported ${project.getName()}. The latest version is: v${project.loadEnvironmentInfo().latestVersionInfo.propertyVersion}`);
 
         }
@@ -712,6 +718,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
     commander
         .command("import", "Import a property from Property Manager.")
         .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('-k, --accountkey [key]', 'optional Account Key')
         .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
         .option('--variable-mode [variableMode]', `Choose how your import will pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  Default functionality is no-var`)
         .alias("i")
